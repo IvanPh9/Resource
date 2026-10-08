@@ -1,19 +1,24 @@
 import express from 'express';
-import router from './routes/authRouter.js';
+import authRouter from './routes/authRouter.js';
+import { errorHandler } from './middlleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.use('/api/auth', router);
+app.use('/api/auth', authRouter);
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Server is running' });
+app.use((req, res, next) => {
+    const error = new Error(`Route ${req.originalUrl} not found`);
+    error.status = 404;
+    next(error);
 });
 
+app.use(errorHandler);
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 export default app;

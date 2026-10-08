@@ -5,46 +5,37 @@
 ## 📁 Структура папки DB
 
 - `docker-compose.yml` — конфігурація Docker Compose для підняття контейнера PostgreSQL.
-- `init.sql` — скрипт автоматичної ініціалізації таблиць `users` та `refresh_sessions`.
-- `.env` — файл змінних середовища (назва БД, користувач, пароль, порт).
+- `init.sql` — скрипт автоматичної ініціалізації таблиць, ENUM ролей, користувачів СУБД та сид-адміна.
+- `.env` — файл змінних середовища.
 - `.env.example` — приклад шаблону для `.env`.
 
-## 🚀 Запуск бази даних
+## 🔐 Користувачі СУБД PostgreSQL
 
-Для запуску БД у фоновому режимі виконайте команду в директорії `DB`:
+В `init.sql` налаштовано розділення облікових записів СУБД:
+
+1. **`postgres`** (Суперкористувач / Owner)
+   - **Password**: зберігається в `.env` файлі (`POSTGRES_PASSWORD`).
+   - Використовується для ініціалізації та повного адміністрування бази.
+2. **`app_user`** (Звичайний користувач додатка)
+   - **Password**: `app_user_password`
+   - Права: `SELECT`, `INSERT`, `UPDATE`, `DELETE` на таблиці та `USAGE` на послідовності (Sequences).
+3. **`app_admin`** (Адміністратор додатка/міграцій)
+   - **Password**: `app_admin_password`
+   - Права: `ALL PRIVILEGES` у схемі `public`.
+
+## 👥 Ролі в таблиці `users`
+
+Таблиця `users` використовує ENUM тип `user_role`:
+- `'user'` — звичайний користувач сервісу (за замовчуванням).
+- `'admin'` — адміністратор сервісу.
+
+### Початковий обліковий запис адміністратора (Seed):
+- **Email**: `admin@system.local`
+- **Password**: `Admin123!`
+- **Role**: `admin`
+
+## 🚀 Запуск бази даних
 
 ```bash
 docker compose up -d
 ```
-
-Перевірити статус контейнера:
-
-```bash
-docker compose ps
-```
-
-Зупинити базу даних:
-
-```bash
-docker compose down
-```
-
-Зупинити та видалити збережені дані (очистити Volume):
-
-```bash
-docker compose down -v
-```
-
-## 🔐 Параметри підключення за замовчуванням
-
-- **Host**: `localhost`
-- **Port**: `5432`
-- **Database**: `auth_db`
-- **User**: `postgres`
-- **Password**: `postgres`
-- **Connection String**: `postgres://postgres:postgres@localhost:5432/auth_db`
-
-## 📊 Таблиці бази даних
-
-1. `users` — зберігає дані користувачів (`id`, `email`, `password_hash`, `role`, `created_at`).
-2. `refresh_sessions` — зберігає сесії refresh-токена (`id`, `user_id`, `token_hash`, `expires_at`, `created_at`).

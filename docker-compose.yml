@@ -8,12 +8,16 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-auth_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_APP_USER: ${DB_APP_USER:-app_user}
+      DB_APP_USER_PASSWORD: ${DB_APP_USER_PASSWORD}
+      DB_APP_ADMIN: ${DB_APP_ADMIN:-app_admin}
+      DB_APP_ADMIN_PASSWORD: ${DB_APP_ADMIN_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./DB/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./DB/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-auth_db}"]
       interval: 5s
@@ -27,18 +31,40 @@ services:
     container_name: resource_platform_auth
     restart: always
     ports:
-      - "${AUTH_PORT:-3000}:3000"
+      - "127.0.0.1:${AUTH_PORT:-3001}:3000"
     environment:
       PORT: 3000
       DB_HOST: db
       DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_USER: ${DB_APP_USER:-app_user}
+      DB_PASSWORD: ${DB_APP_USER_PASSWORD}
       DB_NAME: ${POSTGRES_DB:-auth_db}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-auth_db}
+      DATABASE_URL: postgres://${DB_APP_USER:-app_user}:${DB_APP_USER_PASSWORD}@db:5432/${POSTGRES_DB:-auth_db}
     depends_on:
       db:
         condition: service_healthy
+
+  backend:
+    build:
+      context: ./platform_auth
+      dockerfile: Dockerfile
+    container_name: resource_backend
+    restart: always
+    ports:
+      - "127.0.0.1:${AUTH_PORT:-3001}:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_APP_USER:-app_user}
+      DB_PASSWORD: ${DB_APP_USER_PASSWORD}
+      DB_NAME: ${POSTGRES_DB:-auth_db}
+      DATABASE_URL: postgres://${DB_APP_USER:-app_user}:${DB_APP_USER_PASSWORD}@db:5432/${POSTGRES_DB:-auth_db}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - backend_alias
 
 volumes:
   postgres_data:
