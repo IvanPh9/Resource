@@ -1,42 +1,42 @@
-# Project Resource — Docker Setup
+# Project Resource Setup
 
-Загальний Docker-контейнер та середовище для запуску всього проекту ціліком.
+Docker Compose environment for running the entire project setup.
 
-## 🚀 Запуск усього проекту
+## Running the Project
 
-Для запуску всіх сервісів проекту (База даних + Мікросервіси):
+To build and start all project services (Database and Microservices):
 
 ```bash
 docker compose up -d --build
 ```
 
-Після запуску будуть підняті сервіси:
-- **База даних PostgreSQL (`db`)**: доступна на `localhost:5432`
-- **Сервіс автентифікації (`platform_auth`)**: доступний на `http://localhost:3000`
+After startup, the following services will be available:
+- PostgreSQL Database (`db`): available at `127.0.0.1:5433`
+- Authentication Microservice (`platform_auth`): available at `http://localhost:3001`
 
-## 🛠 Корисні команди
+## Useful Commands
 
-Переглянути стан усіх контейнерів:
+View status of all containers:
 ```bash
 docker compose ps
 ```
 
-Переглянути логи всіх сервісів:
+View logs for all services:
 ```bash
 docker compose logs -f
 ```
 
-Переглянути логи конкретного сервісу:
+View logs for the authentication service:
 ```bash
 docker compose logs -f platform_auth
 ```
 
-Зупинити всі сервіси:
+Stop all services:
 ```bash
 docker compose down
 ```
 
-Зупинити сервіси та видалити дані БД (Volumes):
+Stop services and remove database volumes:
 ```bash
 docker compose down -v
 ```

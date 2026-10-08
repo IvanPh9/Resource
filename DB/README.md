@@ -1,40 +1,41 @@
 # PostgreSQL Database Container
 
-Контейнеризована база даних PostgreSQL для сервісу автентифікації (`platform_auth`).
+Containerized PostgreSQL database for the authentication service (`platform_auth`).
 
-## 📁 Структура папки DB
+## Directory Structure
 
-- `docker-compose.yml` — конфігурація Docker Compose для підняття контейнера PostgreSQL.
-- `init.sql` — скрипт автоматичної ініціалізації таблиць, ENUM ролей, користувачів СУБД та сид-адміна.
-- `.env` — файл змінних середовища.
-- `.env.example` — приклад шаблону для `.env`.
+- `docker-compose.yml` - Docker Compose configuration for launching the PostgreSQL container.
+- `init.sh` - Shell script for initializing database tables, ENUM types, DBMS roles, and privileges.
+- `.env` - Local environment variables configuration.
+- `.env.example` - Example template for `.env`.
 
-## 🔐 Користувачі СУБД PostgreSQL
+## PostgreSQL Database Accounts
 
-В `init.sql` налаштовано розділення облікових записів СУБД:
+1. `postgres` (Superuser / Owner)
+   - Password: Loaded from system environment variable `POSTGRES_PASSWORD`.
+   - Used for database initialization and full administration.
+2. `app_user` (Standard Application Account)
+   - Password: Defined in `.env` (`DB_APP_USER_PASSWORD`).
+   - Permissions: `SELECT`, `INSERT`, `UPDATE`, `DELETE` on tables and `USAGE` on sequences.
+3. `app_admin` (Application Admin / Migration Account)
+   - Password: Loaded from system environment variable `DB_APP_ADMIN_PASSWORD`.
+   - Permissions: `ALL PRIVILEGES` within schema `public`.
 
-1. **`postgres`** (Суперкористувач / Owner)
-   - **Password**: зберігається в `.env` файлі (`POSTGRES_PASSWORD`).
-   - Використовується для ініціалізації та повного адміністрування бази.
-2. **`app_user`** (Звичайний користувач додатка)
-   - **Password**: `app_user_password`
-   - Права: `SELECT`, `INSERT`, `UPDATE`, `DELETE` на таблиці та `USAGE` на послідовності (Sequences).
-3. **`app_admin`** (Адміністратор додатка/міграцій)
-   - **Password**: `app_admin_password`
-   - Права: `ALL PRIVILEGES` у схемі `public`.
+## Roles in users Table
 
-## 👥 Ролі в таблиці `users`
+The `users` table uses the `user_role` ENUM type:
+- `'user'` - Standard user (default).
+- `'admin'` - Administrator.
 
-Таблиця `users` використовує ENUM тип `user_role`:
-- `'user'` — звичайний користувач сервісу (за замовчуванням).
-- `'admin'` — адміністратор сервісу.
+## Database Connection Parameters
 
-### Початковий обліковий запис адміністратора (Seed):
-- **Email**: `admin@system.local`
-- **Password**: `Admin123!`
-- **Role**: `admin`
+- Host: `localhost` (or `127.0.0.1`)
+- External Port: `5433`
+- Database: `auth_db`
 
-## 🚀 Запуск бази даних
+## Running the Database
+
+To start the database in detached mode:
 
 ```bash
 docker compose up -d
